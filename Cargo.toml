@@ -1,0 +1,31 @@
+[package]
+name = "interactive-plotters"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "interactive-plotters"
+path = "src/main.rs"
+
+[dependencies]
+egui = "0.29"
+eframe = "0.29"
+egui_plot = "0.29"
+serde = { version = "1.0", features = ["derive"] }
+
+[[bin]]
+name = "basic_interactive"
+path = "src/basic_interactive.rs"
+
+[[bin]]
+name = "advanced_annotations"
+path = "src/advanced_annotations.rs"
+
+[[bin]]
+name = "interactive_measurements"
+path = "src/interactive_measurements.rs"
+
+[[bin]]
+name = "coordinate_system"
+path = "src/coordinate_system.rs"
+
