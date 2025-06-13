@@ -119,32 +119,11 @@ impl MeasurementApp {
         }
 
         if let Some(pos) = self.get_effective_cursor_position() {
-            let bounds = plot_ui.plot_bounds();
-            
-            // Вертикальная линия crosshair
-            let vertical_line = Line::new(PlotPoints::from(vec![
-                [pos.x, bounds.min()[1]],
-                [pos.x, bounds.max()[1]]
-            ]))
-            .color(egui::Color32::from_rgba_unmultiplied(255, 255, 255, 150))
-            .width(1.0)
-            .style(egui_plot::LineStyle::Dotted { spacing: 5.0 });
-            plot_ui.line(vertical_line);
-
-            // Горизонтальная линия crosshair
-            let horizontal_line = Line::new(PlotPoints::from(vec![
-                [bounds.min()[0], pos.y],
-                [bounds.max()[0], pos.y]
-            ]))
-            .color(egui::Color32::from_rgba_unmultiplied(255, 255, 255, 150))
-            .width(1.0)
-            .style(egui_plot::LineStyle::Dotted { spacing: 5.0 });
-            plot_ui.line(horizontal_line);
-
-            // Центральная точка
+            // Только центральная точка без линий до границ
+            // (линии до границ вызывают проблемы с масштабированием)
             let center_point = Points::new(vec![[pos.x, pos.y]])
                 .color(egui::Color32::YELLOW)
-                .radius(4.0)
+                .radius(6.0)
                 .shape(egui_plot::MarkerShape::Circle);
             plot_ui.points(center_point);
 
@@ -152,8 +131,7 @@ impl MeasurementApp {
             if self.show_values {
                 plot_ui.text(
                     Text::new(
-                        PlotPoint::new(pos.x + (bounds.max()[0] - bounds.min()[0]) * 0.02, 
-                                      pos.y + (bounds.max()[1] - bounds.min()[1]) * 0.02),
+                        PlotPoint::new(pos.x + 0.1, pos.y + 0.1), // Фиксированное смещение
                         format!("({:.3}, {:.3})", pos.x, pos.y)
                     )
                     .color(egui::Color32::WHITE)
@@ -317,13 +295,15 @@ impl eframe::App for MeasurementApp {
             let _plot_response = Plot::new("measurement_plot")
                 .view_aspect(if self.lock_aspect { 2.5 } else { -1.0 })
                 .allow_zoom(true)
-                .allow_drag(true)
+                .allow_drag(!self.ruler_active)  // Отключаем drag при активном измерении
                 .allow_scroll(true)
                 .legend(egui_plot::Legend::default())
                 .show(ui, |plot_ui| {
-                    // Обновляем позицию crosshair
+                    // Обновляем позицию crosshair только если курсор внутри графика и нет drag
                     if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                        self.crosshair_pos = Some(pointer_pos);
+                        if plot_ui.response().hovered() && !plot_ui.response().dragged() {
+                            self.crosshair_pos = Some(pointer_pos);
+                        }
                     }
 
                     // Рисуем основные данные

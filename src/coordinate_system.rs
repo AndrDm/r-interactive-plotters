@@ -316,7 +316,7 @@ impl eframe::App for CoordinateSystemApp {
             let _plot_response = Plot::new("coordinate_demo")
                 .view_aspect(1.0)
                 .allow_zoom(true)
-                .allow_drag(true)
+                .allow_drag(!self.is_dragging)  // Отключаем drag при перетаскивании точки
                 .allow_scroll(true)
                 .legend(egui_plot::Legend::default())
                 .show(ui, |plot_ui| {
@@ -324,8 +324,8 @@ impl eframe::App for CoordinateSystemApp {
                     self.plot_bounds = Some(plot_ui.plot_bounds());
                     self.transform_info = Some(self.calculate_transform_info(plot_ui));
 
-                    // Рисуем сетку координат
-                    if self.show_grid_info {
+                    // Рисуем сетку координат (только если не тащим точку)
+                    if self.show_grid_info && !self.is_dragging {
                         self.draw_coordinate_grid(plot_ui);
                     }
 
@@ -341,54 +341,54 @@ impl eframe::App for CoordinateSystemApp {
                         self.draw_demo_points(plot_ui);
                     }
 
-                    // Обработка событий мыши
+                    // Обработка событий мыши только при hover
                     let response = plot_ui.response();
                     
                     if let Some(plot_pos) = plot_ui.pointer_coordinate() {
-                        let screen_pos = plot_ui.screen_from_plot(plot_pos);
-
-                        // Клики
-                        if response.clicked() {
-                            self.add_mouse_event(MouseEventType::Click, Some(plot_pos), Some(screen_pos),
-                                format!("Левый клик"));
-                        }
-                        
-                        if response.double_clicked() {
-                            self.add_mouse_event(MouseEventType::DoubleClick, Some(plot_pos), Some(screen_pos),
-                                format!("Двойной клик"));
-                        }
-                        
-                        if response.secondary_clicked() {
-                            self.add_mouse_event(MouseEventType::RightClick, Some(plot_pos), Some(screen_pos),
-                                format!("Правый клик"));
-                        }
-
-                        // Перетаскивание точки
-                        if let Some(draggable_point) = self.draggable_point {
-                            let distance_to_draggable = ((plot_pos.x - draggable_point.x).powi(2) + 
-                                                       (plot_pos.y - draggable_point.y).powi(2)).sqrt();
-                            
-                            if distance_to_draggable < 0.2 && response.drag_started() {
-                                self.is_dragging = true;
-                                self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
-                                    format!("Начало перетаскивания точки"));
-                            }
-                        }
-                        
-                        if self.is_dragging && response.dragged() {
-                            self.draggable_point = Some(plot_pos);
-                            self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
-                                format!("Перетаскивание точки"));
-                        }
-                        
-                        if response.drag_stopped() {
-                            self.is_dragging = false;
-                            self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
-                                format!("Окончание перетаскивания"));
-                        }
-
-                        // Прокрутка
                         if response.hovered() {
+                            let screen_pos = plot_ui.screen_from_plot(plot_pos);
+
+                            // Клики
+                            if response.clicked() {
+                                self.add_mouse_event(MouseEventType::Click, Some(plot_pos), Some(screen_pos),
+                                    format!("Левый клик"));
+                            }
+                            
+                            if response.double_clicked() {
+                                self.add_mouse_event(MouseEventType::DoubleClick, Some(plot_pos), Some(screen_pos),
+                                    format!("Двойной клик"));
+                            }
+                            
+                            if response.secondary_clicked() {
+                                self.add_mouse_event(MouseEventType::RightClick, Some(plot_pos), Some(screen_pos),
+                                    format!("Правый клик"));
+                            }
+
+                            // Перетаскивание точки
+                            if let Some(draggable_point) = self.draggable_point {
+                                let distance_to_draggable = ((plot_pos.x - draggable_point.x).powi(2) + 
+                                                           (plot_pos.y - draggable_point.y).powi(2)).sqrt();
+                                
+                                if distance_to_draggable < 0.2 && response.drag_started() {
+                                    self.is_dragging = true;
+                                    self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
+                                        format!("Начало перетаскивания точки"));
+                                }
+                            }
+                            
+                            if self.is_dragging && response.dragged() {
+                                self.draggable_point = Some(plot_pos);
+                                self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
+                                    format!("Перетаскивание точки"));
+                            }
+                            
+                            if response.drag_stopped() {
+                                self.is_dragging = false;
+                                self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
+                                    format!("Окончание перетаскивания"));
+                            }
+
+                            // Прокрутка
                             let scroll_delta = ctx.input(|i| i.smooth_scroll_delta);
                             if scroll_delta.length() > 0.0 {
                                 self.add_mouse_event(MouseEventType::Scroll, Some(plot_pos), Some(screen_pos),

@@ -1,5 +1,5 @@
 use eframe::egui;
-use egui_plot::{Line, Plot, PlotPoints, PlotPoint, Text, PlotUi, Polygon};
+use egui_plot::{Line, Plot, PlotPoints, PlotPoint, Text, PlotUi, Polygon, Points};
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
@@ -198,9 +198,11 @@ impl eframe::App for AdvancedAnnotationsApp {
                 .allow_scroll(true)
                 .legend(egui_plot::Legend::default())
                 .show(ui, |plot_ui| {
-                    // Обновляем позицию мыши
+                    // Обновляем позицию мыши только при hover без drag
                     if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                        self.last_mouse_pos = Some(pointer_pos);
+                        if plot_ui.response().hovered() && !plot_ui.response().dragged() {
+                            self.last_mouse_pos = Some(pointer_pos);
+                        }
                     }
 
                     // Рисуем основную линию
@@ -224,29 +226,23 @@ impl eframe::App for AdvancedAnnotationsApp {
                                 if plot_ui.response().clicked() {
                                     self.vertical_markers.push(pointer_pos.x);
                                 }
-                                // Показываем предпросмотр вертикальной линии
-                                let bounds = plot_ui.plot_bounds();
-                                let preview_line = Line::new(PlotPoints::from(vec![
-                                    [pointer_pos.x, bounds.min()[1]],
-                                    [pointer_pos.x, bounds.max()[1]]
-                                ]))
-                                .color(egui::Color32::from_rgba_unmultiplied(255, 165, 0, 128))
-                                .width(1.0);
-                                plot_ui.line(preview_line);
+                                // Предпросмотр: только точка вместо линии до границ
+                                let preview_point = Points::new(vec![[pointer_pos.x, pointer_pos.y]])
+                                    .color(egui::Color32::from_rgba_unmultiplied(255, 165, 0, 180))
+                                    .radius(4.0)
+                                    .shape(egui_plot::MarkerShape::Square);
+                                plot_ui.points(preview_point);
                             },
                             MarkerMode::HorizontalLine => {
                                 if plot_ui.response().clicked() {
                                     self.horizontal_markers.push(pointer_pos.y);
                                 }
-                                // Показываем предпросмотр горизонтальной линии
-                                let bounds = plot_ui.plot_bounds();
-                                let preview_line = Line::new(PlotPoints::from(vec![
-                                    [bounds.min()[0], pointer_pos.y],
-                                    [bounds.max()[0], pointer_pos.y]
-                                ]))
-                                .color(egui::Color32::from_rgba_unmultiplied(0, 255, 127, 128))
-                                .width(1.0);
-                                plot_ui.line(preview_line);
+                                // Предпросмотр: только точка вместо линии до границ
+                                let preview_point = Points::new(vec![[pointer_pos.x, pointer_pos.y]])
+                                    .color(egui::Color32::from_rgba_unmultiplied(0, 255, 127, 180))
+                                    .radius(4.0)
+                                    .shape(egui_plot::MarkerShape::Diamond);
+                                plot_ui.points(preview_point);
                             },
                             MarkerMode::TextAnnotation => {
                                 if plot_ui.response().clicked() {

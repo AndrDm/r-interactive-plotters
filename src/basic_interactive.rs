@@ -66,12 +66,14 @@ impl eframe::App for InteractiveApp {
             let plot_response = Plot::new("interactive_plot")
                 .view_aspect(2.0)
                 .allow_zoom(true)
-                .allow_drag(true)
+                .allow_drag(!self.drawing_mode)  // Отключаем drag в режиме рисования
                 .allow_scroll(true)
                 .show(ui, |plot_ui| {
-                    // Получаем позицию мыши в координатах графика
+                    // Получаем позицию мыши в координатах графика только при клике или hover без drag
                     if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                        self.last_mouse_pos = Some(pointer_pos);
+                        if plot_ui.response().hovered() && !plot_ui.response().dragged() {
+                            self.last_mouse_pos = Some(pointer_pos);
+                        }
                     }
 
                     // Рисуем основную линию (синусоиду)
@@ -121,27 +123,8 @@ impl eframe::App for InteractiveApp {
                     }
 
                     // Показываем перекрестие в позиции мыши для режима рисования
-                    if self.drawing_mode {
-                        if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                            // Вертикальная линия
-                            let vertical_line = Line::new(PlotPoints::from(vec![
-                                [pointer_pos.x, plot_ui.plot_bounds().min()[1]],
-                                [pointer_pos.x, plot_ui.plot_bounds().max()[1]]
-                            ]))
-                            .color(egui::Color32::from_rgba_unmultiplied(128, 128, 128, 100))
-                            .width(1.0);
-                            plot_ui.line(vertical_line);
-
-                            // Горизонтальная линия
-                            let horizontal_line = Line::new(PlotPoints::from(vec![
-                                [plot_ui.plot_bounds().min()[0], pointer_pos.y],
-                                [plot_ui.plot_bounds().max()[0], pointer_pos.y]
-                            ]))
-                            .color(egui::Color32::from_rgba_unmultiplied(128, 128, 128, 100))
-                            .width(1.0);
-                            plot_ui.line(horizontal_line);
-                        }
-                    }
+                    // УБРАНО: Crosshair вызывает проблемы с масштабированием
+                    // Вместо этого используем простую точку или ничего
                 });
 
             // Инструкции для пользователя
@@ -150,8 +133,8 @@ impl eframe::App for InteractiveApp {
             ui.label("• Включите 'Режим рисования'");
             ui.label("• Левый клик - добавить точку к линии");
             ui.label("• Правый клик - завершить текущую линию");
-            ui.label("• Используйте колесо мыши для масштабирования");
-            ui.label("• Перетаскивайте график для панорамирования");
+            ui.label("• Колесо мыши - масштабирование (работает всегда)");
+            ui.label("• Перетаскивание - только в обычном режиме (не при рисовании)");
             ui.label("• Все нарисованные линии автоматически масштабируются!");
 
             // Отладочная информация
