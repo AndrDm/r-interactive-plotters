@@ -116,6 +116,16 @@ impl eframe::App for DemoLauncherApp {
                     {
                         self.launch_demo("coordinate_system", "Система координат");
                     }
+
+                    ui.add_space(8.0);
+
+                    // Пример 5
+                    if ui.add_sized([button_width, 40.0], egui::Button::new("⏰ 5. Временная шкала"))
+                        .on_hover_text("Временной график с горизонтальными маркерами и подсказками")
+                        .clicked() 
+                    {
+                        self.launch_demo("timeline_chart", "Временная шкала");
+                    }
                 });
                 ui.add_space(10.0);
             });
@@ -183,6 +193,13 @@ impl eframe::App for DemoLauncherApp {
                             ui.label("   • Демонстрация преобразований координат");
                             ui.label("   • Отслеживание событий мыши");
                             ui.label("   • Перетаскиваемые демонстрационные элементы");
+                            
+                            ui.add_space(6.0);
+                            
+                            ui.label("⏰ Временная шкала:");
+                            ui.label("   • Плавный график с временной осью (24 часа)");
+                            ui.label("   • 10 горизонтальных маркеров разных уровней");
+                            ui.label("   • Интерактивные подсказки при наведении");
                         });
                         ui.add_space(10.0);
                     });
@@ -200,6 +217,7 @@ impl eframe::App for DemoLauncherApp {
                             ui.code("cargo run --bin advanced_annotations");
                             ui.code("cargo run --bin interactive_measurements");
                             ui.code("cargo run --bin coordinate_system");
+                            ui.code("cargo run --bin timeline_chart");
                             
                             ui.add_space(6.0);
                             ui.label("Сборка всех примеров:");
@@ -211,6 +229,7 @@ impl eframe::App for DemoLauncherApp {
                             ui.code("./target/release/advanced_annotations");
                             ui.code("./target/release/interactive_measurements");
                             ui.code("./target/release/coordinate_system");
+                            ui.code("./target/release/timeline_chart");
                         });
                         ui.add_space(10.0);
                     });

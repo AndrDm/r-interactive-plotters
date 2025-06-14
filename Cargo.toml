@@ -29,3 +29,7 @@ path = "src/interactive_measurements.rs"
 name = "coordinate_system"
 path = "src/coordinate_system.rs"
 
+[[bin]]
+name = "timeline_chart"
+path = "src/timeline_chart.rs"
+
