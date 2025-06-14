@@ -168,37 +168,33 @@ impl CoordinateSystemApp {
     }
 
     fn draw_coordinate_grid(&self, plot_ui: &mut egui_plot::PlotUi) {
-        let bounds = plot_ui.plot_bounds();
-        let min_x = bounds.min()[0];
-        let max_x = bounds.max()[0];
-        let min_y = bounds.min()[1];
-        let max_y = bounds.max()[1];
+        // Используем фиксированные границы вместо динамических
+        let min_x = -5.0;
+        let max_x = 5.0;
+        let min_y = -3.0;
+        let max_y = 3.0;
 
         // Основные оси
-        if min_x <= 0.0 && max_x >= 0.0 {
-            let y_axis = Line::new(PlotPoints::from(vec![[0.0, min_y], [0.0, max_y]]))
-                .color(egui::Color32::from_rgb(100, 100, 100))
-                .width(2.0)
-                .name("Y-ось");
-            plot_ui.line(y_axis);
-        }
+        let y_axis = Line::new(PlotPoints::from(vec![[0.0, min_y], [0.0, max_y]]))
+            .color(egui::Color32::from_rgb(100, 100, 100))
+            .width(2.0)
+            .name("Y-ось");
+        plot_ui.line(y_axis);
 
-        if min_y <= 0.0 && max_y >= 0.0 {
-            let x_axis = Line::new(PlotPoints::from(vec![[min_x, 0.0], [max_x, 0.0]]))
-                .color(egui::Color32::from_rgb(100, 100, 100))
-                .width(2.0)
-                .name("X-ось");
-            plot_ui.line(x_axis);
-        }
+        let x_axis = Line::new(PlotPoints::from(vec![[min_x, 0.0], [max_x, 0.0]]))
+            .color(egui::Color32::from_rgb(100, 100, 100))
+            .width(2.0)
+            .name("X-ось");
+        plot_ui.line(x_axis);
 
-        // Сетка
-        let grid_step_x = (max_x - min_x) / 10.0;
-        let grid_step_y = (max_y - min_y) / 10.0;
+        // Сетка с фиксированным шагом
+        let grid_step_x = 1.0;
+        let grid_step_y = 0.5;
 
         // Вертикальные линии сетки
-        let mut x = (min_x / grid_step_x).ceil() * grid_step_x;
+        let mut x = min_x;
         while x <= max_x {
-            if (x - 0.0).abs() > grid_step_x * 0.1 {
+            if x.abs() > 0.1 { // Не рисуем на оси Y
                 let grid_line = Line::new(PlotPoints::from(vec![[x, min_y], [x, max_y]]))
                     .color(egui::Color32::from_rgba_unmultiplied(80, 80, 80, 100))
                     .width(1.0);
@@ -208,9 +204,9 @@ impl CoordinateSystemApp {
         }
 
         // Горизонтальные линии сетки
-        let mut y = (min_y / grid_step_y).ceil() * grid_step_y;
+        let mut y = min_y;
         while y <= max_y {
-            if (y - 0.0).abs() > grid_step_y * 0.1 {
+            if y.abs() > 0.1 { // Не рисуем на оси X
                 let grid_line = Line::new(PlotPoints::from(vec![[min_x, y], [max_x, y]]))
                     .color(egui::Color32::from_rgba_unmultiplied(80, 80, 80, 100))
                     .width(1.0);
@@ -324,8 +320,8 @@ impl eframe::App for CoordinateSystemApp {
                     self.plot_bounds = Some(plot_ui.plot_bounds());
                     self.transform_info = Some(self.calculate_transform_info(plot_ui));
 
-                    // Рисуем сетку координат (только если не тащим точку)
-                    if self.show_grid_info && !self.is_dragging {
+                    // Рисуем сетку координат
+                    if self.show_grid_info {
                         self.draw_coordinate_grid(plot_ui);
                     }
 

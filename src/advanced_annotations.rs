@@ -64,19 +64,19 @@ impl AdvancedAnnotationsApp {
 
     fn draw_vertical_markers(&self, plot_ui: &mut PlotUi) {
         for &x_pos in &self.vertical_markers {
-            let bounds = plot_ui.plot_bounds();
+            // Используем фиксированный диапазон вместо динамических границ
             let vertical_line = Line::new(PlotPoints::from(vec![
-                [x_pos, bounds.min()[1]],
-                [x_pos, bounds.max()[1]]
+                [x_pos, -10.0], // Фиксированные границы
+                [x_pos, 10.0]
             ]))
             .color(egui::Color32::from_rgb(255, 165, 0)) // Оранжевый
             .width(2.0)
             .style(egui_plot::LineStyle::Dashed { length: 10.0 });
             plot_ui.line(vertical_line);
 
-            // Добавляем метку
+            // Добавляем метку в фиксированной позиции
             plot_ui.text(
-                Text::new(PlotPoint::new(x_pos, bounds.max()[1] * 0.9), format!("V: {:.1}", x_pos))
+                Text::new(PlotPoint::new(x_pos, 3.0), format!("V: {:.1}", x_pos))
                     .color(egui::Color32::DARK_RED)
                     .anchor(egui::Align2::CENTER_BOTTOM)
             );
@@ -85,19 +85,19 @@ impl AdvancedAnnotationsApp {
 
     fn draw_horizontal_markers(&self, plot_ui: &mut PlotUi) {
         for &y_pos in &self.horizontal_markers {
-            let bounds = plot_ui.plot_bounds();
+            // Используем фиксированный диапазон вместо динамических границ
             let horizontal_line = Line::new(PlotPoints::from(vec![
-                [bounds.min()[0], y_pos],
-                [bounds.max()[0], y_pos]
+                [-15.0, y_pos], // Фиксированные границы
+                [15.0, y_pos]
             ]))
             .color(egui::Color32::from_rgb(0, 255, 127)) // Весенне-зеленый
             .width(2.0)
             .style(egui_plot::LineStyle::Dashed { length: 8.0 });
             plot_ui.line(horizontal_line);
 
-            // Добавляем метку
+            // Добавляем метку в фиксированной позиции
             plot_ui.text(
-                Text::new(PlotPoint::new(bounds.min()[0] * 1.1, y_pos), format!("H: {:.1}", y_pos))
+                Text::new(PlotPoint::new(-5.0, y_pos), format!("H: {:.1}", y_pos))
                     .color(egui::Color32::DARK_GREEN)
                     .anchor(egui::Align2::LEFT_CENTER)
             );
