@@ -121,7 +121,7 @@ impl MeasurementApp {
         if let Some(pos) = self.get_effective_cursor_position() {
             // Только центральная точка без линий до границ
             // (линии до границ вызывают проблемы с масштабированием)
-            let center_point = Points::new(vec![[pos.x, pos.y]])
+            let center_point = Points::new("crosshair", vec![[pos.x, pos.y]])
                 .color(egui::Color32::YELLOW)
                 .radius(6.0)
                 .shape(egui_plot::MarkerShape::Circle);
@@ -131,6 +131,7 @@ impl MeasurementApp {
             if self.show_values {
                 plot_ui.text(
                     Text::new(
+                        "crosshair-label",
                         PlotPoint::new(pos.x + 0.1, pos.y + 0.1), // Фиксированное смещение
                         format!("({:.3}, {:.3})", pos.x, pos.y)
                     )
@@ -146,7 +147,7 @@ impl MeasurementApp {
         // Рисуем завершенные измерения
         for measurement in &self.measurements {
             // Линия измерения
-            let ruler_line = Line::new(PlotPoints::from(vec![
+            let ruler_line = Line::new(format!("measurement-{}", measurement.id), PlotPoints::from(vec![
                 [measurement.start.x, measurement.start.y],
                 [measurement.end.x, measurement.end.y]
             ]))
@@ -156,13 +157,13 @@ impl MeasurementApp {
             plot_ui.line(ruler_line);
 
             // Точки начала и конца
-            let start_point = Points::new(vec![[measurement.start.x, measurement.start.y]])
+            let start_point = Points::new(format!("measurement-{}-start", measurement.id), vec![[measurement.start.x, measurement.start.y]])
                 .color(egui::Color32::RED)
                 .radius(6.0)
                 .shape(egui_plot::MarkerShape::Square);
             plot_ui.points(start_point);
 
-            let end_point = Points::new(vec![[measurement.end.x, measurement.end.y]])
+            let end_point = Points::new(format!("measurement-{}-end", measurement.id), vec![[measurement.end.x, measurement.end.y]])
                 .color(egui::Color32::DARK_RED)
                 .radius(6.0)
                 .shape(egui_plot::MarkerShape::Diamond);
@@ -174,6 +175,7 @@ impl MeasurementApp {
             
             plot_ui.text(
                 Text::new(
+                    format!("measurement-{}-label", measurement.id),
                     PlotPoint::new(mid_x, mid_y),
                     format!("#{}: Δ={:.3}\ndx={:.3}, dy={:.3}", 
                         measurement.id, measurement.distance, measurement.dx, measurement.dy)
@@ -190,7 +192,7 @@ impl MeasurementApp {
                 let start = self.ruler_points[0];
                 
                 // Линия от первой точки до текущей позиции курсора
-                let preview_line = Line::new(PlotPoints::from(vec![
+                let preview_line = Line::new("preview-ruler", PlotPoints::from(vec![
                     [start.x, start.y],
                     [current_pos.x, current_pos.y]
                 ]))
@@ -206,6 +208,7 @@ impl MeasurementApp {
 
                 plot_ui.text(
                     Text::new(
+                        "preview-ruler-label",
                         current_pos,
                         format!("Расстояние: {:.3}\ndx: {:.3}, dy: {:.3}", distance, dx, dy)
                     )
@@ -250,13 +253,13 @@ impl MeasurementApp {
 }
 
 impl eframe::App for MeasurementApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // Генерируем данные при первом запуске
         if self.main_data.is_empty() {
             self.generate_sample_data();
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("Интерактивные измерения и crosshair");
             
             // Панель управления
@@ -307,13 +310,13 @@ impl eframe::App for MeasurementApp {
                     }
 
                     // Рисуем основные данные
-                    let main_line = Line::new(PlotPoints::from(self.main_data.clone()))
+                    let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
                         .color(egui::Color32::BLUE)
                         .width(2.0)
                         .name("Основной сигнал");
                     plot_ui.line(main_line);
 
-                    let secondary_line = Line::new(PlotPoints::from(self.secondary_data.clone()))
+                    let secondary_line = Line::new("secondary", PlotPoints::from(self.secondary_data.clone()))
                         .color(egui::Color32::GREEN)
                         .width(1.5)
                         .name("Вторичный сигнал");

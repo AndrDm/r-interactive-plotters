@@ -16,7 +16,7 @@
 ```rust
 fn draw_vertical_markers(&self, plot_ui: &mut PlotUi) {
     let bounds = plot_ui.plot_bounds(); // ← ПРОБЛЕМА!
-    let vertical_line = Line::new(PlotPoints::from(vec![
+    let vertical_line = Line::new("vertical marker", PlotPoints::from(vec![
         [x_pos, bounds.min()[1]], // ← ПРОБЛЕМА!
         [x_pos, bounds.max()[1]]  // ← ПРОБЛЕМА!
     ]))
@@ -26,7 +26,7 @@ fn draw_vertical_markers(&self, plot_ui: &mut PlotUi) {
 **СТАЛО (исправлено):**
 ```rust
 fn draw_vertical_markers(&self, plot_ui: &mut PlotUi) {
-    let vertical_line = Line::new(PlotPoints::from(vec![
+    let vertical_line = Line::new("vertical marker", PlotPoints::from(vec![
         [x_pos, -10.0], // Фиксированные границы
         [x_pos, 10.0]   // Фиксированные границы
     ]))
@@ -62,7 +62,7 @@ fn draw_coordinate_grid(&self, plot_ui: &mut PlotUi) {
 **БЫЛО (проблемно):**
 ```rust
 let bounds = plot_ui.plot_bounds(); // ← ПРОБЛЕМА!
-let vertical_line = Line::new(PlotPoints::from(vec![
+let vertical_line = Line::new("vertical marker", PlotPoints::from(vec![
     [pos.x, bounds.min()[1]], // ← ПРОБЛЕМА!
     [pos.x, bounds.max()[1]]  // ← ПРОБЛЕМА!
 ]))
@@ -71,7 +71,7 @@ let vertical_line = Line::new(PlotPoints::from(vec![
 **СТАЛО (исправлено):**
 ```rust
 // Только центральная точка без линий до границ
-let center_point = Points::new(vec![[pos.x, pos.y]])
+let center_point = Points::new("crosshair", vec![[pos.x, pos.y]])
     .color(egui::Color32::YELLOW)
     .radius(6.0);
 ```
@@ -80,7 +80,7 @@ let center_point = Points::new(vec![[pos.x, pos.y]])
 
 **БЫЛО (проблемно):**
 ```rust
-let vertical_line = Line::new(PlotPoints::from(vec![
+let vertical_line = Line::new("vertical marker", PlotPoints::from(vec![
     [pointer_pos.x, plot_ui.plot_bounds().min()[1]], // ← ПРОБЛЕМА!
     [pointer_pos.x, plot_ui.plot_bounds().max()[1]]  // ← ПРОБЛЕМА!
 ]))

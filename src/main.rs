@@ -26,7 +26,7 @@ impl DemoLauncherApp {
     fn launch_demo(&mut self, demo_name: &str, description: &str) {
         self.error_message.clear();
         self.last_message = format!("Запускаю {}...", description);
-        
+
         match Command::new("cargo")
             .arg("run")
             .arg("--release")
@@ -36,7 +36,7 @@ impl DemoLauncherApp {
         {
             Ok(_) => {
                 self.last_message = format!("✅ {} запущен успешно", description);
-            },
+            }
             Err(e) => {
                 self.error_message = format!("❌ Ошибка запуска: {}", e);
                 self.last_message.clear();
@@ -46,8 +46,8 @@ impl DemoLauncherApp {
 }
 
 impl eframe::App for DemoLauncherApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ui, |ui| {
             // Заголовок
             ui.vertical_centered(|ui| {
                 ui.add_space(10.0);
@@ -78,11 +78,11 @@ impl eframe::App for DemoLauncherApp {
                 ui.add_space(10.0);
                 ui.vertical(|ui| {
                     let button_width = ui.available_width() - 20.0;
-                    
+
                     // Пример 1
                     if ui.add_sized([button_width, 40.0], egui::Button::new("🖊 1. Базовое рисование линий"))
                         .on_hover_text("Рисование произвольных линий поверх графика с crosshair")
-                        .clicked() 
+                        .clicked()
                     {
                         self.launch_demo("basic_interactive", "Базовое рисование линий");
                     }
@@ -92,7 +92,7 @@ impl eframe::App for DemoLauncherApp {
                     // Пример 2
                     if ui.add_sized([button_width, 40.0], egui::Button::new("📝 2. Продвинутые аннотации"))
                         .on_hover_text("Указатели, текстовые аннотации, выделение областей")
-                        .clicked() 
+                        .clicked()
                     {
                         self.launch_demo("advanced_annotations", "Продвинутые аннотации");
                     }
@@ -102,7 +102,7 @@ impl eframe::App for DemoLauncherApp {
                     // Пример 3
                     if ui.add_sized([button_width, 40.0], egui::Button::new("📏 3. Интерактивные измерения"))
                         .on_hover_text("Crosshair, измерительная линейка, snap к данным")
-                        .clicked() 
+                        .clicked()
                     {
                         self.launch_demo("interactive_measurements", "Интерактивные измерения");
                     }
@@ -112,7 +112,7 @@ impl eframe::App for DemoLauncherApp {
                     // Пример 4
                     if ui.add_sized([button_width, 40.0], egui::Button::new("🔄 4. Система координат"))
                         .on_hover_text("Преобразования координат, события мыши, демо точки")
-                        .clicked() 
+                        .clicked()
                     {
                         self.launch_demo("coordinate_system", "Система координат");
                     }
@@ -122,7 +122,7 @@ impl eframe::App for DemoLauncherApp {
                     // Пример 5
                     if ui.add_sized([button_width, 40.0], egui::Button::new("⏰ 5. Временная шкала"))
                         .on_hover_text("Временной график с горизонтальными маркерами и подсказками")
-                        .clicked() 
+                        .clicked()
                     {
                         self.launch_demo("timeline_chart", "Временная шкала");
                     }
@@ -144,7 +144,7 @@ impl eframe::App for DemoLauncherApp {
                             ui.label(&self.last_message);
                         });
                     }
-                    
+
                     if !self.error_message.is_empty() {
                         ui.horizontal(|ui| {
                             ui.label("⚠️ Ошибка:");
@@ -172,30 +172,30 @@ impl eframe::App for DemoLauncherApp {
                             ui.label("   • Режим рисования линий поверх графика");
                             ui.label("   • Crosshair в реальном времени");
                             ui.label("   • ЛКМ - добавить точку, ПКМ - завершить линию");
-                            
+
                             ui.add_space(6.0);
-                            
+
                             ui.label("📝 Продвинутые аннотации:");
                             ui.label("   • 5 режимов: навигация, вертикаль, горизонталь, текст, область");
                             ui.label("   • Предпросмотр элементов в реальном времени");
                             ui.label("   • Автоматическая нумерация и позиционирование");
-                            
+
                             ui.add_space(6.0);
-                            
+
                             ui.label("📏 Интерактивные измерения:");
                             ui.label("   • Crosshair с координатами");
                             ui.label("   • Точные измерения расстояний");
                             ui.label("   • Snap к точкам данных (магнитная привязка)");
-                            
+
                             ui.add_space(6.0);
-                            
+
                             ui.label("🔄 Система координат:");
                             ui.label("   • Демонстрация преобразований координат");
                             ui.label("   • Отслеживание событий мыши");
                             ui.label("   • Перетаскиваемые демонстрационные элементы");
-                            
+
                             ui.add_space(6.0);
-                            
+
                             ui.label("⏰ Временная шкала:");
                             ui.label("   • Плавный график с временной осью (24 часа)");
                             ui.label("   • 10 горизонтальных маркеров разных уровней");
@@ -218,11 +218,11 @@ impl eframe::App for DemoLauncherApp {
                             ui.code("cargo run --bin interactive_measurements");
                             ui.code("cargo run --bin coordinate_system");
                             ui.code("cargo run --bin timeline_chart");
-                            
+
                             ui.add_space(6.0);
                             ui.label("Сборка всех примеров:");
                             ui.code("cargo build --release");
-                            
+
                             ui.add_space(6.0);
                             ui.label("Запуск готовых бинарников:");
                             ui.code("./target/release/basic_interactive");
@@ -234,7 +234,7 @@ impl eframe::App for DemoLauncherApp {
                         ui.add_space(10.0);
                     });
                 });
-                
+
                 ui.add_space(10.0);
             });
         });

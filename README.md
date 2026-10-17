@@ -117,7 +117,7 @@ cargo run --bin coordinate_system
 Все элементы рисуются в координатах графика, поэтому автоматически масштабируются:
 ```rust
 // Элементы остаются в тех же позициях в системе координат данных
-let line = Line::new(PlotPoints::from(vec![[x1, y1], [x2, y2]]))
+let line = Line::new("custom line", PlotPoints::from(vec![[x1, y1], [x2, y2]]))
     .color(egui::Color32::RED)
     .width(2.0);
 plot_ui.line(line);

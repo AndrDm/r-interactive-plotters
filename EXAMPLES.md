@@ -111,7 +111,7 @@ cargo run --bin timeline_chart             # Временная шкала с м
 Все элементы рисуются в **координатах графика**, поэтому автоматически масштабируются:
 ```rust
 // Линия остается в тех же позициях относительно данных
-let line = Line::new(PlotPoints::from(vec![[x1, y1], [x2, y2]]))
+let line = Line::new("custom line", PlotPoints::from(vec![[x1, y1], [x2, y2]]))
     .color(egui::Color32::RED);
 plot_ui.line(line);
 ```

@@ -66,7 +66,7 @@ if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
 **interactive_measurements.rs:**
 ```rust
 // Заменили crosshair с линиями до границ на простую точку
-let center_point = Points::new(vec![[pos.x, pos.y]])
+let center_point = Points::new("crosshair", vec![[pos.x, pos.y]])
     .color(egui::Color32::YELLOW)
     .radius(6.0)
     .shape(egui_plot::MarkerShape::Circle);
@@ -77,12 +77,12 @@ let center_point = Points::new(vec![[pos.x, pos.y]])
 **advanced_annotations.rs:**
 ```rust
 // Было: линии до границ экрана
-let preview_line = Line::new(PlotPoints::from(vec![
+let preview_line = Line::new("preview", PlotPoints::from(vec![
     [pointer_pos.x, bounds.min()[1]], [pointer_pos.x, bounds.max()[1]]
 ]))
 
 // Стало: простые точки
-let preview_point = Points::new(vec![[pointer_pos.x, pointer_pos.y]])
+let preview_point = Points::new("preview", vec![[pointer_pos.x, pointer_pos.y]])
     .color(egui::Color32::from_rgba_unmultiplied(255, 165, 0, 180))
     .radius(4.0)
 ```
@@ -93,12 +93,12 @@ let preview_point = Points::new(vec![[pointer_pos.x, pointer_pos.y]])
 ```rust
 // Было: динамические границы (вызывали масштабирование)
 let bounds = plot_ui.plot_bounds();
-let vertical_line = Line::new(PlotPoints::from(vec![
+let vertical_line = Line::new("vertical marker", PlotPoints::from(vec![
     [x_pos, bounds.min()[1]], [x_pos, bounds.max()[1]]
 ]))
 
 // Стало: фиксированные границы
-let vertical_line = Line::new(PlotPoints::from(vec![
+let vertical_line = Line::new("vertical marker", PlotPoints::from(vec![
     [x_pos, -10.0], [x_pos, 10.0]  // Фиксированные значения
 ]))
 ```

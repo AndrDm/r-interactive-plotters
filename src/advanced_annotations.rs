@@ -65,7 +65,7 @@ impl AdvancedAnnotationsApp {
     fn draw_vertical_markers(&self, plot_ui: &mut PlotUi) {
         for &x_pos in &self.vertical_markers {
             // Используем фиксированный диапазон вместо динамических границ
-            let vertical_line = Line::new(PlotPoints::from(vec![
+            let vertical_line = Line::new(format!("vertical-{x_pos}"), PlotPoints::from(vec![
                 [x_pos, -10.0], // Фиксированные границы
                 [x_pos, 10.0]
             ]))
@@ -76,7 +76,7 @@ impl AdvancedAnnotationsApp {
 
             // Добавляем метку в фиксированной позиции
             plot_ui.text(
-                Text::new(PlotPoint::new(x_pos, 3.0), format!("V: {:.1}", x_pos))
+                Text::new(format!("vertical-label-{x_pos}"), PlotPoint::new(x_pos, 3.0), format!("V: {:.1}", x_pos))
                     .color(egui::Color32::DARK_RED)
                     .anchor(egui::Align2::CENTER_BOTTOM)
             );
@@ -86,7 +86,7 @@ impl AdvancedAnnotationsApp {
     fn draw_horizontal_markers(&self, plot_ui: &mut PlotUi) {
         for &y_pos in &self.horizontal_markers {
             // Используем фиксированный диапазон вместо динамических границ
-            let horizontal_line = Line::new(PlotPoints::from(vec![
+            let horizontal_line = Line::new(format!("horizontal-{y_pos}"), PlotPoints::from(vec![
                 [-15.0, y_pos], // Фиксированные границы
                 [15.0, y_pos]
             ]))
@@ -97,7 +97,7 @@ impl AdvancedAnnotationsApp {
 
             // Добавляем метку в фиксированной позиции
             plot_ui.text(
-                Text::new(PlotPoint::new(-5.0, y_pos), format!("H: {:.1}", y_pos))
+                Text::new(format!("horizontal-label-{y_pos}"), PlotPoint::new(-5.0, y_pos), format!("H: {:.1}", y_pos))
                     .color(egui::Color32::DARK_GREEN)
                     .anchor(egui::Align2::LEFT_CENTER)
             );
@@ -107,7 +107,7 @@ impl AdvancedAnnotationsApp {
     fn draw_text_annotations(&self, plot_ui: &mut PlotUi) {
         for (pos, text) in &self.text_annotations {
             plot_ui.text(
-                Text::new(*pos, text)
+                Text::new(text.clone(), *pos, text.clone())
                     .color(egui::Color32::WHITE)
                     .anchor(egui::Align2::CENTER_CENTER)
                     .highlight(true)
@@ -125,7 +125,10 @@ impl AdvancedAnnotationsApp {
                 [start.x, end.y],
             ];
             
-            let polygon = Polygon::new(PlotPoints::from(points))
+            let polygon = Polygon::new(
+                format!("area-{}-{}-{}-{}", start.x, start.y, end.x, end.y),
+                PlotPoints::from(points),
+            )
                 .fill_color(egui::Color32::from_rgba_unmultiplied(100, 200, 255, 50))
                 .stroke(egui::Stroke::new(2.0, egui::Color32::BLUE))
                 .name(&format!("Область ({:.1},{:.1})-({:.1},{:.1})", start.x, start.y, end.x, end.y));
@@ -142,7 +145,7 @@ impl AdvancedAnnotationsApp {
                 [start.x, current.y],
             ];
             
-            let preview_polygon = Polygon::new(PlotPoints::from(points))
+            let preview_polygon = Polygon::new("preview-area", PlotPoints::from(points))
                 .fill_color(egui::Color32::from_rgba_unmultiplied(255, 255, 0, 30))
                 .stroke(egui::Stroke::new(1.0, egui::Color32::YELLOW))
                 .name("Предпросмотр области");
@@ -152,13 +155,13 @@ impl AdvancedAnnotationsApp {
 }
 
 impl eframe::App for AdvancedAnnotationsApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // Генерируем данные при первом запуске
         if self.main_data.is_empty() {
             self.generate_sample_data();
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("Продвинутые аннотации и указатели");
             
             // Панель управления режимами
@@ -206,7 +209,7 @@ impl eframe::App for AdvancedAnnotationsApp {
                     }
 
                     // Рисуем основную линию
-                    let main_line = Line::new(PlotPoints::from(self.main_data.clone()))
+                    let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
                         .color(egui::Color32::BLUE)
                         .width(2.0)
                         .name("Основной сигнал");
@@ -227,7 +230,7 @@ impl eframe::App for AdvancedAnnotationsApp {
                                     self.vertical_markers.push(pointer_pos.x);
                                 }
                                 // Предпросмотр: только точка вместо линии до границ
-                                let preview_point = Points::new(vec![[pointer_pos.x, pointer_pos.y]])
+                                let preview_point = Points::new("preview-vertical", vec![[pointer_pos.x, pointer_pos.y]])
                                     .color(egui::Color32::from_rgba_unmultiplied(255, 165, 0, 180))
                                     .radius(4.0)
                                     .shape(egui_plot::MarkerShape::Square);
@@ -238,7 +241,7 @@ impl eframe::App for AdvancedAnnotationsApp {
                                     self.horizontal_markers.push(pointer_pos.y);
                                 }
                                 // Предпросмотр: только точка вместо линии до границ
-                                let preview_point = Points::new(vec![[pointer_pos.x, pointer_pos.y]])
+                                let preview_point = Points::new("preview-horizontal", vec![[pointer_pos.x, pointer_pos.y]])
                                     .color(egui::Color32::from_rgba_unmultiplied(0, 255, 127, 180))
                                     .radius(4.0)
                                     .shape(egui_plot::MarkerShape::Diamond);
@@ -253,7 +256,7 @@ impl eframe::App for AdvancedAnnotationsApp {
                                 }
                                 // Показываем предпросмотр аннотации
                                 plot_ui.text(
-                                    Text::new(pointer_pos, "📍 Клик для добавления")
+                                    Text::new("preview-annotation", pointer_pos, "📍 Клик для добавления")
                                         .color(egui::Color32::from_rgba_unmultiplied(255, 255, 255, 128))
                                         .anchor(egui::Align2::CENTER_TOP)
                                 );

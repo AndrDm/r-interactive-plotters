@@ -40,13 +40,13 @@ impl InteractiveApp {
 }
 
 impl eframe::App for InteractiveApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // Генерируем данные при первом запуске
         if self.main_data.is_empty() {
             self.generate_sample_data();
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("Интерактивный график с рисованием поверх");
             
             ui.horizontal(|ui| {
@@ -77,7 +77,7 @@ impl eframe::App for InteractiveApp {
                     }
 
                     // Рисуем основную линию (синусоиду)
-                    let main_line = Line::new(PlotPoints::from(self.main_data.clone()))
+                    let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
                         .color(egui::Color32::BLUE)
                         .width(2.0)
                         .name("Основной график");
@@ -86,7 +86,7 @@ impl eframe::App for InteractiveApp {
                     // Рисуем завершенные пользовательские линии
                     for (i, line_points) in self.user_lines.iter().enumerate() {
                         if line_points.len() >= 2 {
-                            let user_line = Line::new(PlotPoints::from(line_points.clone()))
+                            let user_line = Line::new(format!("user-{i}"), PlotPoints::from(line_points.clone()))
                                 .color(egui::Color32::RED)
                                 .width(3.0)
                                 .name(&format!("Линия {}", i + 1));
@@ -96,7 +96,7 @@ impl eframe::App for InteractiveApp {
 
                     // Рисуем текущую рисуемую линию
                     if self.current_line.len() >= 2 {
-                        let current_line = Line::new(PlotPoints::from(self.current_line.clone()))
+                        let current_line = Line::new("current", PlotPoints::from(self.current_line.clone()))
                             .color(egui::Color32::from_rgba_unmultiplied(255, 0, 0, 128))
                             .width(2.0)
                             .name("Текущая линия");

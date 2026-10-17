@@ -175,13 +175,13 @@ impl CoordinateSystemApp {
         let max_y = 3.0;
 
         // Основные оси
-        let y_axis = Line::new(PlotPoints::from(vec![[0.0, min_y], [0.0, max_y]]))
+        let y_axis = Line::new("y-axis", PlotPoints::from(vec![[0.0, min_y], [0.0, max_y]]))
             .color(egui::Color32::from_rgb(100, 100, 100))
             .width(2.0)
             .name("Y-ось");
         plot_ui.line(y_axis);
 
-        let x_axis = Line::new(PlotPoints::from(vec![[min_x, 0.0], [max_x, 0.0]]))
+        let x_axis = Line::new("x-axis", PlotPoints::from(vec![[min_x, 0.0], [max_x, 0.0]]))
             .color(egui::Color32::from_rgb(100, 100, 100))
             .width(2.0)
             .name("X-ось");
@@ -195,7 +195,7 @@ impl CoordinateSystemApp {
         let mut x = min_x;
         while x <= max_x {
             if x.abs() > 0.1 { // Не рисуем на оси Y
-                let grid_line = Line::new(PlotPoints::from(vec![[x, min_y], [x, max_y]]))
+                let grid_line = Line::new(format!("vertical-grid-{x}"), PlotPoints::from(vec![[x, min_y], [x, max_y]]))
                     .color(egui::Color32::from_rgba_unmultiplied(80, 80, 80, 100))
                     .width(1.0);
                 plot_ui.line(grid_line);
@@ -207,7 +207,7 @@ impl CoordinateSystemApp {
         let mut y = min_y;
         while y <= max_y {
             if y.abs() > 0.1 { // Не рисуем на оси X
-                let grid_line = Line::new(PlotPoints::from(vec![[min_x, y], [max_x, y]]))
+                let grid_line = Line::new(format!("horizontal-grid-{y}"), PlotPoints::from(vec![[min_x, y], [max_x, y]]))
                     .color(egui::Color32::from_rgba_unmultiplied(80, 80, 80, 100))
                     .width(1.0);
                 plot_ui.line(grid_line);
@@ -227,7 +227,7 @@ impl CoordinateSystemApp {
             let screen_pos = plot_ui.screen_from_plot(point);
             
             // Точка
-            let demo_point = Points::new(vec![[point.x, point.y]])
+            let demo_point = Points::new(format!("demo-point-{i}"), vec![[point.x, point.y]])
                 .color(egui::Color32::from_rgb(255, 100 + i as u8 * 40, 255))
                 .radius(6.0)
                 .shape(egui_plot::MarkerShape::Circle);
@@ -236,6 +236,7 @@ impl CoordinateSystemApp {
             // Подпись с координатами
             plot_ui.text(
                 Text::new(
+                    format!("demo-point-label-{i}"),
                     PlotPoint::new(point.x + 0.1, point.y + 0.1),
                     format!("P{}: ({:.1}, {:.1})\nScreen: ({:.0}, {:.0})", 
                         i + 1, point.x, point.y, screen_pos.x, screen_pos.y)
@@ -249,7 +250,7 @@ impl CoordinateSystemApp {
         // Перетаскиваемая точка
         if let Some(draggable_point) = self.draggable_point {
             let _draggable_screen_pos = plot_ui.screen_from_plot(draggable_point);
-            let draggable_point_visual = Points::new(vec![[draggable_point.x, draggable_point.y]])
+            let draggable_point_visual = Points::new("draggable-point", vec![[draggable_point.x, draggable_point.y]])
                 .color(egui::Color32::GOLD)
                 .radius(8.0)
                 .shape(egui_plot::MarkerShape::Diamond);
@@ -257,6 +258,7 @@ impl CoordinateSystemApp {
 
             plot_ui.text(
                 Text::new(
+                    "draggable-point-label",
                     PlotPoint::new(draggable_point.x, draggable_point.y + 0.3),
                     format!("Перетаскиваемая\n({:.2}, {:.2})", draggable_point.x, draggable_point.y)
                 )
@@ -282,13 +284,13 @@ impl CoordinateSystemApp {
 }
 
 impl eframe::App for CoordinateSystemApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         // Генерируем данные при первом запуске
         if self.main_data.is_empty() {
             self.generate_sample_data();
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("Система координат и события мыши");
             
             // Панель управления
@@ -309,6 +311,7 @@ impl eframe::App for CoordinateSystemApp {
             ui.separator();
 
             // Основной график
+            let ctx = ui.ctx().clone();
             let _plot_response = Plot::new("coordinate_demo")
                 .view_aspect(1.0)
                 .allow_zoom(true)
@@ -326,7 +329,7 @@ impl eframe::App for CoordinateSystemApp {
                     }
 
                     // Рисуем основные данные
-                    let main_line = Line::new(PlotPoints::from(self.main_data.clone()))
+                    let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
                         .color(egui::Color32::BLUE)
                         .width(2.0)
                         .name("Спираль");

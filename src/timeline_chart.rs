@@ -124,7 +124,7 @@ impl TimelineApp {
     fn draw_horizontal_markers(&self, plot_ui: &mut PlotUi) {
         for (_i, marker) in self.horizontal_markers.iter().enumerate() {
             // Рисуем горизонтальный отрезок как линию между двумя точками
-            let segment_line = Line::new(PlotPoints::from(vec![
+            let segment_line = Line::new(format!("marker-{}", marker.label), PlotPoints::from(vec![
                 [marker.start_x, marker.y_value],
                 [marker.end_x, marker.y_value]
             ]))
@@ -134,13 +134,13 @@ impl TimelineApp {
             plot_ui.line(segment_line);
             
             // Рисуем маркеры начала и конца отрезка
-            let start_point = Points::new(vec![[marker.start_x, marker.y_value]])
+            let start_point = Points::new(format!("marker-start-{}", marker.label), vec![[marker.start_x, marker.y_value]])
                 .color(marker.color)
                 .radius(6.0)
                 .name(&format!("{} (начало)", marker.label));
             plot_ui.points(start_point);
             
-            let end_point = Points::new(vec![[marker.end_x, marker.y_value]])
+            let end_point = Points::new(format!("marker-end-{}", marker.label), vec![[marker.end_x, marker.y_value]])
                 .color(marker.color)
                 .radius(6.0)
                 .name(&format!("{} (конец)", marker.label));
@@ -179,12 +179,12 @@ impl TimelineApp {
 }
 
 impl eframe::App for TimelineApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         if self.main_data.is_empty() {
             self.generate_sample_data();
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("Временная шкала с горизонтальными отрезками");
             
             ui.horizontal(|ui| {
@@ -224,24 +224,32 @@ impl eframe::App for TimelineApp {
                 .x_axis_formatter(|mark, _range| {
                     TimelineApp::format_time(mark.value)
                 })
-                .label_formatter(|name, value| {
-                    if !name.is_empty() {
-                        format!("{}\nВремя: {}\nЗначение: {:.1}", 
-                            name, 
-                            TimelineApp::format_time(value.x), 
+                .label_formatter(|hover| {
+                    let (name, value) = match hover {
+                        egui_plot::HoverPosition::NearDataPoint {
+                            plot_name,
+                            position,
+                            ..
+                        } => (*plot_name, *position),
+                        egui_plot::HoverPosition::Elsewhere { position } => ("", *position),
+                    };
+                    Some(if !name.is_empty() {
+                        format!("{}\nВремя: {}\nЗначение: {:.1}",
+                            name,
+                            TimelineApp::format_time(value.x),
                             value.y)
                     } else {
-                        format!("Время: {}\nЗначение: {:.1}", 
-                            TimelineApp::format_time(value.x), 
+                        format!("Время: {}\nЗначение: {:.1}",
+                            TimelineApp::format_time(value.x),
                             value.y)
-                    }
+                    })
                 })
                 .show(ui, |plot_ui| {
                     // Проверяем наведение на маркеры
                     self.check_marker_hover(plot_ui);
                     
                     // Рисуем основную кривую
-                    let main_line = Line::new(PlotPoints::from(self.main_data.clone()))
+                    let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
                         .color(egui::Color32::from_rgb(70, 130, 180))
                         .width(3.0)
                         .name("Основные данные");
