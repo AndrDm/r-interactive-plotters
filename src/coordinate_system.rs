@@ -21,7 +21,7 @@ struct CoordinateSystemApp {
     max_events: usize,
     // Система координат
     plot_bounds: Option<egui_plot::PlotBounds>,
-    screen_rect: Option<egui::Rect>,
+    _screen_rect: Option<egui::Rect>,
     transform_info: Option<TransformInfo>,
     // Режим отображения
     show_grid_info: bool,
@@ -34,7 +34,7 @@ struct CoordinateSystemApp {
     draggable_point: Option<PlotPoint>,
     is_dragging: bool,
     // Масштаб и панорамирование
-    zoom_history: Vec<ZoomInfo>,
+    _zoom_history: Vec<ZoomInfo>,
     current_zoom_level: f64,
 }
 
@@ -43,7 +43,7 @@ struct MouseEvent {
     event_type: MouseEventType,
     plot_pos: Option<PlotPoint>,
     screen_pos: Option<egui::Pos2>,
-    timestamp: std::time::Instant,
+    _timestamp: std::time::Instant,
     additional_info: String,
 }
 
@@ -53,26 +53,26 @@ enum MouseEventType {
     DoubleClick,
     RightClick,
     Drag,
-    Hover,
+    _Hover,
     Scroll,
     Enter,
-    Leave,
+    _Leave,
 }
 
 #[derive(Clone, Debug)]
 struct TransformInfo {
     plot_to_screen_scale: egui::Vec2,
     screen_to_plot_scale: egui::Vec2,
-    plot_offset: egui::Vec2,
-    screen_offset: egui::Vec2,
+    _plot_offset: egui::Vec2,
+    _screen_offset: egui::Vec2,
 }
 
 #[derive(Clone, Debug)]
 struct ZoomInfo {
-    bounds: egui_plot::PlotBounds,
-    zoom_level: f64,
-    center: PlotPoint,
-    timestamp: std::time::Instant,
+    _bounds: egui_plot::PlotBounds,
+    _zoom_level: f64,
+    _center: PlotPoint,
+    _timestamp: std::time::Instant,
 }
 
 impl Default for CoordinateSystemApp {
@@ -82,7 +82,7 @@ impl Default for CoordinateSystemApp {
             mouse_events: Vec::new(),
             max_events: 0,
             plot_bounds: None,
-            screen_rect: None,
+            _screen_rect: None,
             transform_info: None,
             show_grid_info: false,
             show_transform_demo: false,
@@ -91,7 +91,7 @@ impl Default for CoordinateSystemApp {
             demo_points_screen: Vec::new(),
             draggable_point: None,
             is_dragging: false,
-            zoom_history: Vec::new(),
+            _zoom_history: Vec::new(),
             current_zoom_level: 0.0,
         }
     }
@@ -133,7 +133,7 @@ impl CoordinateSystemApp {
             event_type,
             plot_pos,
             screen_pos,
-            timestamp: std::time::Instant::now(),
+            _timestamp: std::time::Instant::now(),
             additional_info,
         };
 
@@ -162,8 +162,8 @@ impl CoordinateSystemApp {
                 plot_width as f32 / screen_bounds,
                 plot_height as f32 / screen_bounds
             ),
-            plot_offset: egui::Vec2::new(bounds.min()[0] as f32, bounds.min()[1] as f32),
-            screen_offset: plot_ui.screen_from_plot(PlotPoint::new(bounds.min()[0], bounds.min()[1])).to_vec2(),
+            _plot_offset: egui::Vec2::new(bounds.min()[0] as f32, bounds.min()[1] as f32),
+            _screen_offset: plot_ui.screen_from_plot(PlotPoint::new(bounds.min()[0], bounds.min()[1])).to_vec2(),
         }
     }
 
@@ -275,10 +275,10 @@ impl CoordinateSystemApp {
             MouseEventType::DoubleClick => "🖱🖱 Двойной клик",
             MouseEventType::RightClick => "🖱 ПКМ",
             MouseEventType::Drag => "↔ Перетаскивание",
-            MouseEventType::Hover => "👆 Наведение",
+            MouseEventType::_Hover => "👆 Наведение",
             MouseEventType::Scroll => "🔄 Прокрутка",
             MouseEventType::Enter => "→ Вход",
-            MouseEventType::Leave => "← Выход",
+            MouseEventType::_Leave => "← Выход",
         }
     }
 }
@@ -343,24 +343,24 @@ impl eframe::App for CoordinateSystemApp {
                     // Обработка событий мыши только при hover
                     let response = plot_ui.response();
                     
-                    if let Some(plot_pos) = plot_ui.pointer_coordinate() {
-                        if response.hovered() {
+                    if let Some(plot_pos) = plot_ui.pointer_coordinate()
+                        && response.hovered() {
                             let screen_pos = plot_ui.screen_from_plot(plot_pos);
 
                             // Клики
                             if response.clicked() {
                                 self.add_mouse_event(MouseEventType::Click, Some(plot_pos), Some(screen_pos),
-                                    format!("Левый клик"));
+                                    "Левый клик".to_string());
                             }
                             
                             if response.double_clicked() {
                                 self.add_mouse_event(MouseEventType::DoubleClick, Some(plot_pos), Some(screen_pos),
-                                    format!("Двойной клик"));
+                                    "Двойной клик".to_string());
                             }
                             
                             if response.secondary_clicked() {
                                 self.add_mouse_event(MouseEventType::RightClick, Some(plot_pos), Some(screen_pos),
-                                    format!("Правый клик"));
+                                    "Правый клик".to_string());
                             }
 
                             // Перетаскивание точки
@@ -371,20 +371,20 @@ impl eframe::App for CoordinateSystemApp {
                                 if distance_to_draggable < 0.2 && response.drag_started() {
                                     self.is_dragging = true;
                                     self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
-                                        format!("Начало перетаскивания точки"));
+                                        "Начало перетаскивания точки".to_string());
                                 }
                             }
                             
                             if self.is_dragging && response.dragged() {
                                 self.draggable_point = Some(plot_pos);
                                 self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
-                                    format!("Перетаскивание точки"));
+                                    "Перетаскивание точки".to_string());
                             }
                             
                             if response.drag_stopped() {
                                 self.is_dragging = false;
                                 self.add_mouse_event(MouseEventType::Drag, Some(plot_pos), Some(screen_pos),
-                                    format!("Окончание перетаскивания"));
+                                    "Окончание перетаскивания".to_string());
                             }
 
                             // Прокрутка
@@ -394,11 +394,10 @@ impl eframe::App for CoordinateSystemApp {
                                     format!("Прокрутка: ({:.1}, {:.1})", scroll_delta.x, scroll_delta.y));
                             }
                         }
-                    }
 
                     // Вход и выход курсора
                     if response.hovered() && self.mouse_events.last()
-                        .map_or(true, |e| !matches!(e.event_type, MouseEventType::Hover)) {
+                        .is_none_or(|e| !matches!(e.event_type, MouseEventType::_Hover)) {
                         self.add_mouse_event(MouseEventType::Enter, 
                             plot_ui.pointer_coordinate(), 
                             plot_ui.pointer_coordinate().map(|p| plot_ui.screen_from_plot(p)),

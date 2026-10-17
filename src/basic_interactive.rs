@@ -70,11 +70,10 @@ impl eframe::App for InteractiveApp {
                 .allow_scroll(true)
                 .show(ui, |plot_ui| {
                     // Получаем позицию мыши в координатах графика только при клике или hover без drag
-                    if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                        if plot_ui.response().hovered() && !plot_ui.response().dragged() {
+                    if let Some(pointer_pos) = plot_ui.pointer_coordinate()
+                        && plot_ui.response().hovered() && !plot_ui.response().dragged() {
                             self.last_mouse_pos = Some(pointer_pos);
                         }
-                    }
 
                     // Рисуем основную линию (синусоиду)
                     let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
@@ -89,7 +88,7 @@ impl eframe::App for InteractiveApp {
                             let user_line = Line::new(format!("user-{i}"), PlotPoints::from(line_points.clone()))
                                 .color(egui::Color32::RED)
                                 .width(3.0)
-                                .name(&format!("Линия {}", i + 1));
+                                .name(format!("Линия {}", i + 1));
                             plot_ui.line(user_line);
                         }
                     }
@@ -104,8 +103,8 @@ impl eframe::App for InteractiveApp {
                     }
 
                     // Обработка кликов мыши в режиме рисования
-                    if self.drawing_mode {
-                        if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
+                    if self.drawing_mode
+                        && let Some(pointer_pos) = plot_ui.pointer_coordinate() {
                             // При нажатии левой кнопки мыши
                             if plot_ui.response().clicked() {
                                 // Начинаем новую линию или добавляем точку к текущей
@@ -113,14 +112,12 @@ impl eframe::App for InteractiveApp {
                             }
                             
                             // При нажатии правой кнопки - завершаем текущую линию
-                            if plot_ui.response().secondary_clicked() {
-                                if !self.current_line.is_empty() {
+                            if plot_ui.response().secondary_clicked()
+                                && !self.current_line.is_empty() {
                                     self.user_lines.push(self.current_line.clone());
                                     self.current_line.clear();
                                 }
-                            }
                         }
-                    }
 
                     // Показываем перекрестие в позиции мыши для режима рисования
                     // УБРАНО: Crosshair вызывает проблемы с масштабированием
@@ -142,10 +139,9 @@ impl eframe::App for InteractiveApp {
             ui.collapsing("Отладка", |ui| {
                 ui.label(format!("Текущая линия: {} точек", self.current_line.len()));
                 ui.label(format!("Завершенных линий: {}", self.user_lines.len()));
-                if let transform = plot_response.transform {
-                    let bounds = transform.bounds();
-                    ui.label(format!("Границы графика: {:?}", bounds));
-                }
+                let transform = plot_response.transform;
+                let bounds = transform.bounds();
+                ui.label(format!("Границы графика: {:?}", bounds));
             });
         });
     }

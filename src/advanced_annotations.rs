@@ -36,7 +36,9 @@ struct AdvancedAnnotationsApp {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Default)]
 enum MarkerMode {
+    #[default]
     Navigate,       // Обычная навигация по графику
     VerticalLine,   // Добавление вертикальных линий
     HorizontalLine, // Добавление горизонтальных линий
@@ -44,11 +46,6 @@ enum MarkerMode {
     AreaSelection,  // Выделение областей
 }
 
-impl Default for MarkerMode {
-    fn default() -> Self {
-        MarkerMode::Navigate
-    }
-}
 
 impl AdvancedAnnotationsApp {
     fn generate_sample_data(&mut self) {
@@ -131,7 +128,7 @@ impl AdvancedAnnotationsApp {
             )
                 .fill_color(egui::Color32::from_rgba_unmultiplied(100, 200, 255, 50))
                 .stroke(egui::Stroke::new(2.0, egui::Color32::BLUE))
-                .name(&format!("Область ({:.1},{:.1})-({:.1},{:.1})", start.x, start.y, end.x, end.y));
+                .name(format!("Область ({:.1},{:.1})-({:.1},{:.1})", start.x, start.y, end.x, end.y));
             plot_ui.polygon(polygon);
         }
     }
@@ -202,11 +199,10 @@ impl eframe::App for AdvancedAnnotationsApp {
                 .legend(egui_plot::Legend::default())
                 .show(ui, |plot_ui| {
                     // Обновляем позицию мыши только при hover без drag
-                    if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                        if plot_ui.response().hovered() && !plot_ui.response().dragged() {
+                    if let Some(pointer_pos) = plot_ui.pointer_coordinate()
+                        && plot_ui.response().hovered() && !plot_ui.response().dragged() {
                             self.last_mouse_pos = Some(pointer_pos);
                         }
-                    }
 
                     // Рисуем основную линию
                     let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))

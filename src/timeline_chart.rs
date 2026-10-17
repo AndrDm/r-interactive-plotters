@@ -35,7 +35,7 @@ impl TimelineApp {
     fn format_time(hours_float: f64) -> String {
         let hours = hours_float as i32;
         let minutes = ((hours_float - hours as f64) * 60.0) as i32;
-        format!("{:02}:{:02}", hours.max(0).min(23), minutes.max(0).min(59))
+        format!("{:02}:{:02}", hours.clamp(0,23), minutes.clamp(0, 59))
     }
     
     fn format_time_with_date(hours_float: f64) -> String {
@@ -43,8 +43,13 @@ impl TimelineApp {
         let hours = hours_float as i32;
         let minutes = ((hours_float - hours as f64) * 60.0) as i32;
         let seconds = (((hours_float - hours as f64) * 60.0 - minutes as f64) * 60.0) as i32;
-        format!("{} {:02}:{:02}:{:02}", base_date, hours.max(0).min(23), minutes.max(0).min(59), seconds.max(0).min(59))
-    }
+        format!(
+            "{} {:02}:{:02}:{:02}",
+            base_date,
+            hours.clamp(0, 23),
+            minutes.clamp(0, 59),
+            seconds.clamp(0, 59),
+        )}
     
     fn generate_sample_data(&mut self) {
         // Генерируем плавный многочлен на временной шкале
@@ -61,7 +66,7 @@ impl TimelineApp {
                 let noise = 5.0 * (t * 3.7).sin() * (t * 1.3).cos();
                 
                 let value: f64 = base + daily_cycle + trend * 0.1 + noise;
-                [t, value.max(10.0).min(100.0)] // ограничиваем диапазон
+                [t, value.clamp(10.0, 100.0)] // ограничиваем диапазон
             })
             .collect();
 
@@ -122,7 +127,7 @@ impl TimelineApp {
     }
     
     fn draw_horizontal_markers(&self, plot_ui: &mut PlotUi) {
-        for (_i, marker) in self.horizontal_markers.iter().enumerate() {
+        for marker in self.horizontal_markers.iter() {
             // Рисуем горизонтальный отрезок как линию между двумя точками
             let segment_line = Line::new(format!("marker-{}", marker.label), PlotPoints::from(vec![
                 [marker.start_x, marker.y_value],
@@ -137,13 +142,13 @@ impl TimelineApp {
             let start_point = Points::new(format!("marker-start-{}", marker.label), vec![[marker.start_x, marker.y_value]])
                 .color(marker.color)
                 .radius(6.0)
-                .name(&format!("{} (начало)", marker.label));
+                .name(format!("{} (начало)", marker.label));
             plot_ui.points(start_point);
             
             let end_point = Points::new(format!("marker-end-{}", marker.label), vec![[marker.end_x, marker.y_value]])
                 .color(marker.color)
                 .radius(6.0)
-                .name(&format!("{} (конец)", marker.label));
+                .name(format!("{} (конец)", marker.label));
             plot_ui.points(end_point);
         }
     }
@@ -262,9 +267,9 @@ impl eframe::App for TimelineApp {
             ui.separator();
 
             // Показываем подсказку для наведенного маркера
-            if self.show_tooltips {
-                if let Some(marker_idx) = self.hovered_marker {
-                    if let Some(marker) = self.horizontal_markers.get(marker_idx) {
+            if self.show_tooltips
+                && let Some(marker_idx) = self.hovered_marker
+                    && let Some(marker) = self.horizontal_markers.get(marker_idx) {
                         ui.horizontal(|ui| {
                             ui.colored_label(marker.color, "●");
                             ui.label(format!("Маркер: {}", marker.label));
@@ -274,8 +279,6 @@ impl eframe::App for TimelineApp {
                                 Self::format_time(marker.end_x)));
                         });
                     }
-                }
-            }
 
             // Легенда маркеров
             ui.collapsing("📋 Легенда маркеров", |ui| {

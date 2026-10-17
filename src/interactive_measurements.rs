@@ -153,7 +153,7 @@ impl MeasurementApp {
             ]))
             .color(egui::Color32::from_rgb(255, 100, 100))
             .width(3.0)
-            .name(&format!("Измерение #{}", measurement.id));
+            .name(format!("Измерение #{}", measurement.id));
             plot_ui.line(ruler_line);
 
             // Точки начала и конца
@@ -187,8 +187,8 @@ impl MeasurementApp {
         }
 
         // Рисуем активное измерение (если есть)
-        if self.ruler_active && self.ruler_points.len() == 1 {
-            if let Some(current_pos) = self.get_effective_cursor_position() {
+        if self.ruler_active && self.ruler_points.len() == 1
+            && let Some(current_pos) = self.get_effective_cursor_position() {
                 let start = self.ruler_points[0];
                 
                 // Линия от первой точки до текущей позиции курсора
@@ -217,7 +217,6 @@ impl MeasurementApp {
                     .highlight(true)
                 );
             }
-        }
     }
 
     fn handle_ruler_click(&mut self, pos: PlotPoint) {
@@ -303,11 +302,10 @@ impl eframe::App for MeasurementApp {
                 .legend(egui_plot::Legend::default())
                 .show(ui, |plot_ui| {
                     // Обновляем позицию crosshair только если курсор внутри графика и нет drag
-                    if let Some(pointer_pos) = plot_ui.pointer_coordinate() {
-                        if plot_ui.response().hovered() && !plot_ui.response().dragged() {
+                    if let Some(pointer_pos) = plot_ui.pointer_coordinate()
+                        && plot_ui.response().hovered() && !plot_ui.response().dragged() {
                             self.crosshair_pos = Some(pointer_pos);
                         }
-                    }
 
                     // Рисуем основные данные
                     let main_line = Line::new("main", PlotPoints::from(self.main_data.clone()))
@@ -329,11 +327,10 @@ impl eframe::App for MeasurementApp {
                     self.draw_ruler(plot_ui);
 
                     // Обработка кликов для измерений
-                    if plot_ui.response().clicked() {
-                        if let Some(pos) = plot_ui.pointer_coordinate() {
+                    if plot_ui.response().clicked()
+                        && let Some(pos) = plot_ui.pointer_coordinate() {
                             self.handle_ruler_click(pos);
                         }
-                    }
 
                     // Отмена текущего измерения по правому клику
                     if plot_ui.response().secondary_clicked() {
@@ -353,11 +350,10 @@ impl eframe::App for MeasurementApp {
                         ui.label(format!("  X: {:.4}", pos.x));
                         ui.label(format!("  Y: {:.4}", pos.y));
                         
-                        if self.snap_to_data {
-                            if self.find_closest_data_point(self.crosshair_pos.unwrap_or(PlotPoint::new(0.0, 0.0))).is_some() {
+                        if self.snap_to_data
+                            && self.find_closest_data_point(self.crosshair_pos.unwrap_or(PlotPoint::new(0.0, 0.0))).is_some() {
                                 ui.label("  🧲 Привязан к данным");
                             }
-                        }
                     } else {
                         ui.label("  Курсор вне графика");
                     }
